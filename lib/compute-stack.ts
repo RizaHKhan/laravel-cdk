@@ -6,6 +6,7 @@ import {
   InstanceType,
   LaunchTemplate,
   SecurityGroup,
+  SubnetType,
   UserData,
   Vpc,
 } from "aws-cdk-lib/aws-ec2";
@@ -53,6 +54,7 @@ export class ComputeStack extends Stack {
       vpc,
       launchTemplate,
       desiredCapacity: 1,
+      vpcSubnets: { subnetType: SubnetType.PUBLIC }
     });
   }
 }
