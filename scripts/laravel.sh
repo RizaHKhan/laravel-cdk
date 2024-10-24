@@ -6,7 +6,7 @@ systemctl start httpd
 systemctl enable httpd
 
 /bin/bash -c "$(curl -fsSL https://php.new/install/linux)"
-source ~/.bashrc
+source /root/.bashrc
 
 # cd /var/www
 # laravel new app
