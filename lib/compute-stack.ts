@@ -15,11 +15,19 @@ import { Construct } from "constructs";
 import { readFileSync } from "fs";
 import path = require("path");
 
+interface ComputeStackProps extends StackProps {
+  vpc: Vpc;
+  securityGroup: SecurityGroup;
+}
+
 export class ComputeStack extends Stack {
   private instanceRole: Role;
+  public autoScalingGroup: AutoScalingGroup;
 
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  constructor(scope: Construct, id: string, props: ComputeStackProps) {
     super(scope, id, props);
+
+    const { vpc, securityGroup } = props;
 
     this.instanceRole = new Role(this, "InstanceRole", {
       assumedBy: new ServicePrincipal("ec2.amazonaws.com"),
@@ -27,18 +35,13 @@ export class ComputeStack extends Stack {
         ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMManagedInstanceCore"),
       ],
     });
-  }
+    const script = readFileSync(
+      path.join(__dirname, "../scripts/laravel.sh"),
+      "utf8",
+    );
 
-  lauchAppInstance({
-    vpc,
-    securityGroup,
-  }: {
-    vpc: Vpc;
-    securityGroup: SecurityGroup;
-  }): void {
-    const script = readFileSync(path.join(__dirname, '../scripts/laravel.sh'), 'utf8');
-
-    const userData = UserData.custom(script)
+    const userData = UserData.forLinux();
+    userData.addCommands(script);
 
     const launchTemplate = new LaunchTemplate(this, "AppInstance", {
       instanceType: new InstanceType("t3.micro"),
@@ -47,14 +50,14 @@ export class ComputeStack extends Stack {
       }),
       role: this.instanceRole,
       securityGroup,
-      userData
+      userData,
     });
 
-    new AutoScalingGroup(this, "AutoScalingGroup", {
+    this.autoScalingGroup = new AutoScalingGroup(this, "AutoScalingGroup", {
       vpc,
       launchTemplate,
       desiredCapacity: 1,
-      vpcSubnets: { subnetType: SubnetType.PUBLIC }
+      vpcSubnets: { subnetType: SubnetType.PUBLIC },
     });
   }
 }
