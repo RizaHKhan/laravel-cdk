@@ -17,7 +17,9 @@ import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 
 interface DeploymentStackProps extends StackProps {
-  autoScalingGroups: AutoScalingGroup[];
+  deploymentGroup: ServerDeploymentGroup;
+  artifactBucket: Bucket;
+  sourceArtifact: Artifact;
 }
 
 export class DeploymentStack extends Stack {
@@ -26,14 +28,8 @@ export class DeploymentStack extends Stack {
   constructor(scope: Construct, id: string, props: DeploymentStackProps) {
     super(scope, id, props);
 
-    const { autoScalingGroups } = props;
+    const { artifactBucket, deploymentGroup, sourceArtifact } = props;
     this.oauthToken = SecretValue.secretsManager("github-token");
-
-    const artifactBucket = new Bucket(this, "ArtifactBucket", {
-      removalPolicy: RemovalPolicy.DESTROY,
-    });
-
-    const sourceArtifact = new Artifact("SourceArtifact");
 
     const role = new Role(this, "PipelineRole", {
       assumedBy: new CompositePrincipal(
@@ -50,11 +46,6 @@ export class DeploymentStack extends Stack {
           ],
         }),
       },
-    });
-
-    // CodeDeploy Deployment Group
-    const deploymentGroup = new ServerDeploymentGroup(this, "DeploymentGroup", {
-      autoScalingGroups,
     });
 
     new Pipeline(this, "Pipeline", {

@@ -8,11 +8,14 @@ import { DeploymentStack } from "../lib/deployment-stack";
 const app = new cdk.App();
 
 const network = new NetworkStack(app, "NetworkStack", {});
+
 const compute = new ComputeStack(app, "ComputeStack", {
   vpc: network.vpc,
   securityGroup: network.securityGroup,
 });
 
 new DeploymentStack(app, "DeploymentStack", {
-  autoScalingGroups: [compute.autoScalingGroup],
+  deploymentGroup: compute.deploymentGroup,
+  artifactBucket: compute.artifactBucket,
+  sourceArtifact: compute.sourceArtifact,
 });

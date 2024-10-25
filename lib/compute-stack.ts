@@ -1,5 +1,7 @@
-import { Stack, StackProps } from "aws-cdk-lib";
+import { RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
 import { AutoScalingGroup } from "aws-cdk-lib/aws-autoscaling";
+import { ServerDeploymentGroup } from "aws-cdk-lib/aws-codedeploy";
+import { Artifact } from "aws-cdk-lib/aws-codepipeline";
 import {
   AmazonLinuxGeneration,
   AmazonLinuxImage,
@@ -11,6 +13,7 @@ import {
   Vpc,
 } from "aws-cdk-lib/aws-ec2";
 import { ManagedPolicy, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 import { readFileSync } from "fs";
 import path = require("path");
@@ -22,7 +25,9 @@ interface ComputeStackProps extends StackProps {
 
 export class ComputeStack extends Stack {
   private instanceRole: Role;
-  public autoScalingGroup: AutoScalingGroup;
+  public deploymentGroup: ServerDeploymentGroup;
+  public artifactBucket: Bucket;
+  public sourceArtifact: Artifact;
 
   constructor(scope: Construct, id: string, props: ComputeStackProps) {
     super(scope, id, props);
@@ -35,6 +40,7 @@ export class ComputeStack extends Stack {
         ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMManagedInstanceCore"),
       ],
     });
+
     const script = readFileSync(
       path.join(__dirname, "../scripts/laravel.sh"),
       "utf8",
@@ -53,11 +59,21 @@ export class ComputeStack extends Stack {
       userData,
     });
 
-    this.autoScalingGroup = new AutoScalingGroup(this, "AutoScalingGroup", {
+    const autoScalingGroup = new AutoScalingGroup(this, "AutoScalingGroup", {
       vpc,
       launchTemplate,
       desiredCapacity: 1,
       vpcSubnets: { subnetType: SubnetType.PUBLIC },
     });
+
+    this.deploymentGroup = new ServerDeploymentGroup(this, "DeploymentGroup", {
+      autoScalingGroups: [autoScalingGroup],
+    });
+
+    this.artifactBucket = new Bucket(this, "ArtifactBucket", {
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
+    this.sourceArtifact = new Artifact("SourceArtifact");
   }
 }
