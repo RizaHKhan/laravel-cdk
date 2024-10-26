@@ -1,14 +1,5 @@
-# Welcome to your CDK TypeScript project
+# Laravel
 
-This is a blank project for CDK development with TypeScript.
-
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
-
-## Useful commands
-
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `npx cdk deploy`  deploy this stack to your default AWS account/region
-* `npx cdk diff`    compare deployed stack with current state
-* `npx cdk synth`   emits the synthesized CloudFormation template
+1. Nginx configuration was difficult, but we figured it out eventually
+2. Frontend asset build hasn't been implemented (should be done at the code build stage)
+3. The laravel vendor file isn't created on the server

@@ -1,8 +1,13 @@
-import { RemovalPolicy, SecretValue, Stack, StackProps } from "aws-cdk-lib";
-import { AutoScalingGroup } from "aws-cdk-lib/aws-autoscaling";
+import { SecretValue, Stack, StackProps } from "aws-cdk-lib";
+import {
+  BuildSpec,
+  LinuxBuildImage,
+  PipelineProject,
+} from "aws-cdk-lib/aws-codebuild";
 import { ServerDeploymentGroup } from "aws-cdk-lib/aws-codedeploy";
 import { Artifact, Pipeline } from "aws-cdk-lib/aws-codepipeline";
 import {
+  CodeBuildAction,
   CodeDeployServerDeployAction,
   GitHubSourceAction,
 } from "aws-cdk-lib/aws-codepipeline-actions";
@@ -66,10 +71,43 @@ export class DeploymentStack extends Stack {
             }),
           ],
         },
-        // {
-        //   stageName: "Build",
-        //   actions: [],
-        // },
+        {
+          stageName: "Build",
+          actions: [
+            new CodeBuildAction({
+              actionName: "Build",
+              project: new PipelineProject(this, "BuildProject", {
+                environment: {
+                  buildImage: LinuxBuildImage.AMAZON_LINUX_2_5,
+                },
+                buildSpec: BuildSpec.fromObject({
+                  version: "0.2",
+                  phases: {
+                    install: {
+                      "runtime-versions": {
+                        nodejs: "20.x",
+                        php: "8.3",
+                      },
+                      commands: [
+                        "npm install",
+                        "curl -sS https://getcomposer.org/installer | php", // Install Composer
+                        "php composer.phar install --no-dev --optimize-autoloader", // Install PHP dependencies
+                      ],
+                    },
+                    build: {
+                      commands: ["npm run build"],
+                    },
+                  },
+                  artifacts: {
+                    "base-directory": "public",
+                    files: ["**/*"],
+                  },
+                }),
+              }),
+              input: sourceArtifact,
+            }),
+          ],
+        },
         {
           stageName: "Deploy",
           actions: [

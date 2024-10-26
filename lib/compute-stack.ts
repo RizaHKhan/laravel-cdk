@@ -50,7 +50,7 @@ export class ComputeStack extends Stack {
     userData.addCommands(script);
 
     const launchTemplate = new LaunchTemplate(this, "AppInstance", {
-      instanceType: new InstanceType("t3.micro"),
+      instanceType: new InstanceType("t2.micro"),
       machineImage: new AmazonLinuxImage({
         generation: AmazonLinuxGeneration.AMAZON_LINUX_2023,
       }),
