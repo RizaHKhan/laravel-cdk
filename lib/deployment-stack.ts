@@ -101,12 +101,9 @@ export class DeploymentStack extends Stack {
                     },
                   },
                   artifacts: {
-                    "base-directory": "/var/www/app", // Adjust this to the appropriate base directory if different
+                    "base-directory": "/", // Adjust this to the appropriate base directory if different
                     files: [
-                      "public/**/*", // Frontend assets
-                      "vendor/**/*", // Laravel dependencies
-                      ".env", // Environment file if needed
-                      "bootstrap/**/*", // Cache and config files if necessary
+                      "**/*", // Frontend assets
                     ],
                   },
                 }),
