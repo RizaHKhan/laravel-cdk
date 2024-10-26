@@ -101,7 +101,7 @@ export class DeploymentStack extends Stack {
                     },
                   },
                   artifacts: {
-                    "base-directory": "/", // Adjust this to the appropriate base directory if different
+                    "base-directory": "./", // Adjust this to the appropriate base directory if different
                     files: [
                       "**/*", // Frontend assets
                     ],
