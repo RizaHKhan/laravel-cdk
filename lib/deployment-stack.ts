@@ -25,6 +25,7 @@ interface DeploymentStackProps extends StackProps {
   deploymentGroup: ServerDeploymentGroup;
   artifactBucket: Bucket;
   sourceArtifact: Artifact;
+  buildArtifact: Artifact;
 }
 
 export class DeploymentStack extends Stack {
@@ -33,7 +34,8 @@ export class DeploymentStack extends Stack {
   constructor(scope: Construct, id: string, props: DeploymentStackProps) {
     super(scope, id, props);
 
-    const { artifactBucket, deploymentGroup, sourceArtifact } = props;
+    const { artifactBucket, deploymentGroup, sourceArtifact, buildArtifact } =
+      props;
     this.oauthToken = SecretValue.secretsManager("github-token");
 
     const role = new Role(this, "PipelineRole", {
@@ -99,12 +101,18 @@ export class DeploymentStack extends Stack {
                     },
                   },
                   artifacts: {
-                    "base-directory": "public",
-                    files: ["**/*"],
+                    "base-directory": "/var/www/app", // Adjust this to the appropriate base directory if different
+                    files: [
+                      "public/**/*", // Frontend assets
+                      "vendor/**/*", // Laravel dependencies
+                      ".env", // Environment file if needed
+                      "bootstrap/**/*", // Cache and config files if necessary
+                    ],
                   },
                 }),
               }),
               input: sourceArtifact,
+              outputs: [buildArtifact],
             }),
           ],
         },
@@ -113,7 +121,7 @@ export class DeploymentStack extends Stack {
           actions: [
             new CodeDeployServerDeployAction({
               actionName: "DeployToEc2",
-              input: sourceArtifact,
+              input: buildArtifact,
               deploymentGroup,
             }),
           ],

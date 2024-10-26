@@ -18,4 +18,5 @@ new DeploymentStack(app, "DeploymentStack", {
   deploymentGroup: compute.deploymentGroup,
   artifactBucket: compute.artifactBucket,
   sourceArtifact: compute.sourceArtifact,
+  buildArtifact: compute.buildArtifact,
 });

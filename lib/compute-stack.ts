@@ -28,6 +28,7 @@ export class ComputeStack extends Stack {
   public deploymentGroup: ServerDeploymentGroup;
   public artifactBucket: Bucket;
   public sourceArtifact: Artifact;
+  public buildArtifact: Artifact;
 
   constructor(scope: Construct, id: string, props: ComputeStackProps) {
     super(scope, id, props);
@@ -75,5 +76,6 @@ export class ComputeStack extends Stack {
     });
 
     this.sourceArtifact = new Artifact("SourceArtifact");
+    this.buildArtifact = new Artifact("BuildArtifact");
   }
 }
